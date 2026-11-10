@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="洗浄進行">
+<meta name="theme-color" content="#0b0d12">
+<title>CIP/SIP 洗浄進行共有</title>
+<style>
+:root{
+  --bg1:#0b0d12; --bg2:#14181f;
+  --glass:rgba(255,255,255,0.055);
+  --glass-brd:rgba(255,255,255,0.09);
+  --text:#f2f3f5; --sub:#9aa1ad; --sub2:#6c7280;
+  --accent:#3ea6ff; --accent2:#64d2ff;
+  --warn:#ffb454; --danger:#ff6b6b; --ok:#37d99a;
+  --radius:18px; --radius-sm:12px;
+  --shadow:0 8px 30px rgba(0,0,0,0.35);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro JP","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 700px at 10% -10%, rgba(62,166,255,0.16), transparent 60%),
+    radial-gradient(1000px 600px at 100% 0%, rgba(100,210,255,0.10), transparent 55%),
+    linear-gradient(160deg, var(--bg1), var(--bg2) 60%, #0a0c10);
+  background-color:var(--bg1);
+  background-attachment:fixed;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:60px;
+}
+.app{max-width:920px; margin:0 auto; padding:calc(14px + env(safe-area-inset-top)) 16px 40px;}
+header{padding:6px 4px 12px; display:flex; flex-direction:column; gap:4px;}
+.hdr-top{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+header h1{font-size:20px; font-weight:700; margin:0; letter-spacing:.2px; flex:1; min-width:180px;}
+header p{margin:0; color:var(--sub); font-size:12.5px;}
+.conn{font-size:11.5px; display:inline-flex; align-items:center; gap:6px; color:var(--sub); white-space:nowrap;}
+.conn .dot{width:8px; height:8px; border-radius:50%; background:var(--sub2);}
+.conn.ok .dot{background:var(--ok); box-shadow:0 0 8px var(--ok);}
+.conn.warn .dot{background:var(--warn);}
+.conn.err .dot{background:var(--danger);}
+
+.tabs{position:sticky; top:calc(6px + env(safe-area-inset-top)); z-index:50; display:flex; gap:4px; padding:4px; margin:0 0 14px;
+  background:rgba(20,24,31,0.82); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--glass-brd); border-radius:999px;}
+.tab{flex:1; text-align:center; padding:10px 6px; border-radius:999px; font-weight:700; font-size:14px; color:var(--sub); cursor:pointer; user-select:none;}
+.tab.active{background:rgba(62,166,255,0.2); color:var(--text);}
+
+.card{
+  background:var(--glass); border:1px solid var(--glass-brd); border-radius:var(--radius);
+  backdrop-filter:blur(22px) saturate(150%); -webkit-backdrop-filter:blur(22px) saturate(150%);
+  box-shadow:var(--shadow); padding:18px 18px 20px; margin-bottom:16px; position:relative; overflow:hidden;
+}
+.card h2{font-size:14px; margin:0 0 14px; color:var(--sub); font-weight:600; letter-spacing:.3px; display:flex; align-items:center; gap:8px;}
+.card h2 .badge{font-size:11px; padding:2px 8px; border-radius:20px; background:rgba(62,166,255,0.16); color:var(--accent2); font-weight:600;}
+
+label.field{display:block; font-size:12.5px; color:var(--sub); margin-bottom:6px; font-weight:500;}
+.row{display:flex; gap:10px; flex-wrap:wrap;}
+.row > *{flex:1; min-width:140px;}
+select, input[type=date], input[type=time], input[type=number], input[type=text], input[type=password]{
+  width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:var(--text);
+  border-radius:var(--radius-sm); padding:11px 12px; font-size:16px; outline:none; appearance:none; -webkit-appearance:none;
+  font-family:inherit; min-height:44px;
+}
+select option{background:#1a1e26; color:var(--text);}
+select:focus, input:focus{border-color:var(--accent); background:rgba(62,166,255,0.08);}
+select{
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%239aa1ad'/></svg>");
+  background-repeat:no-repeat; background-position:right 14px center; padding-right:32px;
+}
+input[type=date]::-webkit-calendar-picker-indicator, input[type=time]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(1.6); opacity:.8;}
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.07); color:var(--text);
+  padding:10px 16px; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer;
+  transition:transform .12s ease, background .15s ease; user-select:none; white-space:nowrap; font-family:inherit; min-height:40px;
+}
+.btn:active{transform:scale(0.96);}
+.btn.primary{background:linear-gradient(135deg, var(--accent), #2f7ee0); border-color:transparent; color:#fff; box-shadow:0 4px 18px rgba(62,166,255,0.35);}
+.btn.go{background:linear-gradient(135deg, #37d99a, #22a874); border-color:transparent; color:#04140d;}
+.btn.ghost{background:transparent;}
+.btn.danger{color:var(--danger); border-color:rgba(255,107,107,0.35);}
+.btn.warnb{color:var(--warn); border-color:rgba(255,180,84,0.35);}
+.btn.sm{padding:6px 12px; font-size:12.5px; min-height:34px;}
+.btn.wide{width:100%; padding:13px 16px; font-size:15px;}
+.btn:disabled{opacity:.35; pointer-events:none;}
+.quickrow{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+
+.group{border:none; margin:0 0 16px; padding:0;}
+.group legend{font-size:12.5px; color:var(--accent2); font-weight:700; padding:0 0 8px;}
+.item-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:11px 12px; margin-bottom:6px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; cursor:pointer;}
+.item-row.checked{background:rgba(62,166,255,0.13); border-color:rgba(62,166,255,0.4);}
+.item-row input[type=checkbox]{width:20px; height:20px; flex:none; margin:0; appearance:none; -webkit-appearance:none;
+  border:1.5px solid rgba(255,255,255,0.3); border-radius:7px; background:rgba(255,255,255,0.05); position:relative; cursor:pointer;}
+.item-row input[type=checkbox]:checked{background:var(--accent); border-color:var(--accent);}
+.item-row input[type=checkbox]:checked::after{content:""; position:absolute; left:6px; top:2px; width:5px; height:10px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg);}
+.item-name{flex:1; font-size:14.5px; font-weight:500;}
+.item-dur{font-size:12.5px; color:var(--sub); font-variant-numeric:tabular-nums;}
+.item-note{flex-basis:100%; font-size:11.5px; color:var(--warn); padding-left:30px; margin-top:-2px;}
+.item-sub{flex-basis:100%; font-size:11.5px; color:var(--sub); padding-left:30px; margin-top:-2px;}
+.item-row.disabled{opacity:.32; cursor:not-allowed;}
+.item-row.mode-row{border-color:rgba(100,210,255,0.22);}
+.lock-tag{font-size:10.5px; color:var(--sub); border:1px solid rgba(255,255,255,0.14); border-radius:20px; padding:1px 7px; font-weight:600;}
+.group-hint{font-size:11.5px; color:var(--sub); margin:-4px 0 8px;}
+.line-banner{font-size:12px; color:var(--warn); background:rgba(255,180,84,0.08); border:1px solid rgba(255,180,84,0.25); border-radius:12px; padding:9px 12px; margin-bottom:14px; line-height:1.55;}
+.info-banner{font-size:12px; color:var(--accent2); background:rgba(62,166,255,0.08); border:1px solid rgba(62,166,255,0.25); border-radius:12px; padding:9px 12px; margin-bottom:14px; line-height:1.55;}
+
+.sel-list{display:flex; flex-direction:column; gap:8px;}
+.sel-item{display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:12px; padding:10px 10px 10px 6px; touch-action:pan-y;}
+.sel-item.drag-placeholder{opacity:.25;}
+.grip{width:34px; height:34px; flex:none; display:flex; align-items:center; justify-content:center; color:var(--sub2); font-size:18px; cursor:grab; touch-action:none; border-radius:10px;}
+.sel-order{width:22px; height:22px; flex:none; border-radius:50%; background:rgba(62,166,255,0.18); color:var(--accent2); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;}
+.sel-name{flex:1; font-size:14.5px; font-weight:600;}
+.sel-dur{font-size:12px; color:var(--sub);}
+.remove-btn{width:28px; height:28px; border-radius:50%; border:none; flex:none; background:rgba(255,107,107,0.14); color:var(--danger); font-size:15px; cursor:pointer;}
+.drag-clone{position:fixed; z-index:999; pointer-events:none; border-radius:12px; opacity:.95; box-shadow:0 14px 34px rgba(0,0,0,0.5); background:rgba(30,34,42,0.95); border:1px solid rgba(62,166,255,0.5);}
+
+.summary-bar{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:14px;}
+.sum-tile{background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:11px 13px;}
+.sum-tile .lbl{font-size:11px; color:var(--sub); margin-bottom:4px;}
+.sum-tile .val{font-size:19px; font-weight:700; font-variant-numeric:tabular-nums;}
+.sum-tile.fill .val{color:var(--ok);}
+.badge-day{font-size:10px; color:var(--accent2); font-weight:700; margin-right:3px; vertical-align:2px;}
+
+.result-item{background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:13px 14px; margin-bottom:10px;}
+.result-item.seg-active{border-color:rgba(55,217,154,0.45); background:rgba(55,217,154,0.06);}
+.result-item.seg-done{opacity:.6;}
+.ri-top{display:flex; align-items:center; gap:8px 10px; flex-wrap:wrap;}
+.ri-idx{width:24px; height:24px; border-radius:50%; background:rgba(62,166,255,0.18); color:var(--accent2); font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:none;}
+.ri-name{font-size:15px; font-weight:700; flex:1; min-width:120px;}
+.ri-time{font-size:13.5px; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.ri-dur{font-size:11.5px; color:var(--sub); white-space:nowrap;}
+.ri-note{font-size:11.5px; color:var(--warn); margin-top:6px;}
+.ri-note.sub{color:var(--sub);}
+.stag{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:999px;}
+.stag.active{background:rgba(55,217,154,0.16); color:var(--ok);}
+.stag.done{background:rgba(255,255,255,0.08); color:var(--sub);}
+
+.step-table{width:100%; border-collapse:collapse; margin-top:10px; font-size:13px;}
+.step-table th{text-align:left; font-size:11px; color:var(--sub); font-weight:600; padding:4px 6px; border-bottom:1px solid rgba(255,255,255,0.08);}
+.step-table td{padding:6px 6px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:top;}
+.step-table td.t-time{font-variant-numeric:tabular-nums; white-space:nowrap;}
+.step-table td.t-remain{color:var(--sub); font-size:12px; white-space:nowrap;}
+.step-table tr.past{opacity:.42;}
+.step-table tr.current{background:rgba(55,217,154,0.1);}
+.step-table tr.current td:first-child{box-shadow:inset 3px 0 0 var(--ok);}
+.gate-note{font-size:11px; color:var(--warn); margin-top:2px;}
+
+.detail-toggle{font-size:12.5px; color:var(--accent2); cursor:pointer; margin-top:10px; display:inline-flex; align-items:center; gap:4px; user-select:none; padding:4px 0;}
+.detail-toggle .arrow{display:inline-block; transition:transform .18s;}
+.detail-toggle.open .arrow{transform:rotate(90deg);}
+
+/* Gantt */
+.gantt{margin-top:12px;}
+.g-row{display:grid; grid-template-columns:112px 1fr; gap:8px; align-items:center; padding:5px 0; cursor:pointer;}
+.g-row.axis{cursor:default; padding:0 0 2px;}
+.g-label{min-width:0;}
+.g-name{display:block; font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.g-sub{display:block; font-size:10.5px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.g-row.lane-active .g-sub{color:var(--ok);}
+.g-track{position:relative; height:18px; background:rgba(255,255,255,0.04); border-radius:6px;}
+.g-track.axis{background:none; height:14px;}
+.g-track.axis span{position:absolute; top:0; transform:translateX(-50%); font-size:9.5px; color:var(--sub2); font-variant-numeric:tabular-nums; white-space:nowrap;}
+.g-bar{position:absolute; top:3px; bottom:3px; border-radius:5px; background:rgba(62,166,255,0.5);}
+.g-bar.done{background:rgba(255,255,255,0.16);}
+.g-bar.active{background:linear-gradient(90deg,#2fbf86,var(--ok));}
+.g-wait{position:absolute; top:3px; bottom:3px; border-radius:5px; background:repeating-linear-gradient(45deg, rgba(255,180,84,.55) 0 4px, transparent 4px 8px);}
+.g-mark{position:absolute; top:-2px; bottom:-2px; width:2px; margin-left:-1px; background:var(--warn); opacity:.8;}
+.g-now{position:absolute; top:-4px; bottom:-4px; width:2px; margin-left:-1px; background:var(--danger); box-shadow:0 0 6px var(--danger);}
+.g-detail{padding:0 0 6px;}
+.g-links{margin-top:10px; padding:9px 11px; border-radius:10px; background:rgba(255,180,84,0.06); border:1px solid rgba(255,180,84,0.18); font-size:11.5px; line-height:1.6; color:#e9d8bf;}
+.g-links b{color:var(--warn); font-weight:700;}
+.g-hint{font-size:10.5px; color:var(--sub2); margin-top:6px;}
+
+/* Board */
+.line-card{padding:16px 16px 14px;}
+.line-card.idle{padding:12px 16px; display:flex; align-items:center; gap:10px;}
+.lc-top{display:flex; align-items:center; gap:8px;}
+.lc-name{font-size:17px; font-weight:800; letter-spacing:.3px;}
+.line-card.idle .lc-name{font-size:15px;}
+.lc-pct{margin-left:auto; font-size:20px; font-weight:800; font-variant-numeric:tabular-nums;}
+.chip{font-size:11.5px; padding:3px 10px; border-radius:999px; font-weight:700; white-space:nowrap;}
+.chip.run{background:rgba(55,217,154,0.15); color:var(--ok);}
+.chip.pause{background:rgba(255,180,84,0.16); color:var(--warn);}
+.chip.idle{background:rgba(255,255,255,0.07); color:var(--sub);}
+.chip.wait{background:rgba(62,166,255,0.16); color:var(--accent2);}
+.chip.over{background:rgba(255,107,107,0.15); color:var(--danger);}
+.pbar{height:8px; border-radius:999px; background:rgba(255,255,255,0.08); overflow:hidden; margin:10px 0 10px;}
+.pbar > div{height:100%; background:linear-gradient(90deg,var(--accent),var(--ok)); border-radius:inherit;}
+.line-card.paused .pbar > div{background:var(--warn);}
+.now-list{font-size:13.5px; line-height:1.55; margin-bottom:10px;}
+.now-list .nl-head{font-weight:700;}
+.now-list .nl-lane{color:#d6dae0; font-size:12.5px; padding-left:10px; position:relative;}
+.now-list .nl-lane::before{content:""; position:absolute; left:0; top:.65em; width:4px; height:4px; border-radius:50%; background:var(--ok);}
+.now-list .nl-lane b{color:var(--sub); font-weight:600;}
+.lc-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+.kv{background:rgba(255,255,255,0.045); border-radius:10px; padding:8px 10px;}
+.kv .k{font-size:10.5px; color:var(--sub);}
+.kv .v{font-size:16px; font-weight:700; font-variant-numeric:tabular-nums;}
+.kv.fill .v{color:var(--ok);}
+.lc-remain{font-size:12.5px; color:var(--sub); margin-top:9px;}
+.lc-remain .cd{color:var(--text); font-weight:700;}
+.lc-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.07);}
+.lc-meta{font-size:11px; color:var(--sub2); margin-top:8px;}
+.idle-sub{font-size:12px; color:var(--sub); flex:1;}
+
+.toast{position:fixed; left:50%; bottom:calc(26px + env(safe-area-inset-bottom)); transform:translateX(-50%) translateY(20px);
+  background:rgba(28,32,40,0.94); border:1px solid rgba(255,255,255,0.14); color:#fff; padding:11px 20px; border-radius:999px;
+  font-size:13.5px; font-weight:600; opacity:0; transition:opacity .2s, transform .2s; pointer-events:none; z-index:1000; max-width:90vw; text-align:center;}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:900; padding:16px;}
+.modal{background:#1a1e26; border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:20px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,.55); max-height:90vh; overflow:auto;}
+.modal h3{margin:0 0 12px; font-size:16px;}
+.modal p{font-size:13.5px; color:#d6dae0; line-height:1.6; margin:0 0 12px;}
+.modal .mrow{margin-bottom:12px;}
+.modal .mbtns{display:flex; justify-content:flex-end; gap:8px; margin-top:8px;}
+.radio, .chk{display:flex; align-items:center; gap:8px; font-size:13.5px; padding:6px 0; cursor:pointer;}
+.radio input, .chk input{width:18px; height:18px; accent-color:var(--accent);}
+.merr{color:var(--danger); font-size:12.5px; min-height:1em; margin:2px 0 4px;}
+
+.empty-hint{color:var(--sub); font-size:13.5px; text-align:center; padding:20px 6px;}
+.preset-row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+footer{text-align:center; color:var(--sub2); font-size:11px; padding:20px 8px 0; line-height:1.6;}
+
+@media (max-width:480px){
+  .app{padding-left:12px; padding-right:12px;}
+  .g-row{grid-template-columns:96px 1fr;}
+  .kv .v{font-size:15px;}
+  .card{padding:16px 14px 18px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="hdr-top">
+      <h1>CIP / SIP 洗浄進行</h1>
+      <span id="conn" class="conn" style="cursor:pointer;" title="タップで接続診断"><span class="dot"></span><span id="connText">接続中…</span></span>
+    </div>
+    <p>洗浄・殺菌工程の進行を全端末で共有（M5〜M9ライン）</p>
+  </header>
+  <div id="demoBanner" class="info-banner" style="display:none;"></div>
+
+  <nav class="tabs">
+    <div class="tab active" data-tab="board">進行状況</div>
+    <div class="tab" data-tab="plan">計画・開始</div>
+  </nav>
+
+  <!-- ====== 進行状況 ====== -->
+  <div id="view-board">
+    <div id="board"></div>
+  </div>
+
+  <!-- ====== 計画・開始 ====== -->
+  <div id="view-plan" style="display:none;">
+    <section class="card">
+      <h2>① 対象ライン</h2>
+      <select id="lineSelect">
+        <option value="m5">M5ライン</option>
+        <option value="m6">M6ライン</option>
+        <option value="m7">M7ライン</option>
+        <option value="m8">M8ライン</option>
+        <option value="m9" selected>M9ライン</option>
+      </select>
+    </section>
+
+    <section class="card">
+      <h2>② 開始日時（計画用）</h2>
+      <div class="row">
+        <div><label class="field">開始日</label><input type="date" id="startDate"></div>
+        <div><label class="field">開始時刻</label><input type="time" id="startTime"></div>
+      </div>
+      <div class="quickrow"><button class="btn sm" id="btnNow">現在時刻に設定</button></div>
+      <div class="row" style="margin-top:14px;">
+        <div><label class="field">洗浄終了後の生産準備工程時間（分）</label><input type="number" id="prepMin" min="0" step="1" value="15" inputmode="numeric"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>③ プリセット</h2>
+      <div class="preset-row">
+        <select id="presetSelect" style="flex:1;"><option value="">プリセットを選択…</option></select>
+        <button class="btn sm" id="btnLoadPreset">読込</button>
+        <button class="btn sm ghost" id="btnDeletePreset">削除</button>
+      </div>
+      <div class="quickrow"><button class="btn sm primary" id="btnSavePreset">現在の選択をプリセット保存</button></div>
+    </section>
+
+    <section class="card">
+      <h2>④ 洗浄内容を選択</h2>
+      <div id="lineBanner" class="line-banner" style="display:none;"></div>
+      <div id="checklist"></div>
+    </section>
+
+    <section class="card">
+      <h2>⑤ 洗浄順序（ドラッグで並べ替え）<span class="badge" id="selCountBadge">0件</span></h2>
+      <div class="sel-list" id="selectedList"></div>
+      <div class="empty-hint" id="selectedEmptyHint">洗浄内容を選択すると、ここに順番リストが表示されます</div>
+    </section>
+
+    <section class="card">
+      <h2>⑥ 計算結果 <span class="badge" id="resultBadge"></span></h2>
+      <div id="resultContent"></div>
+    </section>
+  </div>
+
+  <footer>データ出典：M9 CIP/SIP 工程経過表（社内Excel）・ライン別平均モード所要時間<br>共有データ：開始時刻・状態のみ（履歴は保存しません）</footer>
+</div>
+
+<div id="toast" class="toast"></div>
+<div id="modalRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.88.0/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* =====================================================================
+   ★設定：Supabase の接続情報（未設定のままだと「デモモード」で動きます）
+   Supabase管理画面 → Project Settings → API Keys / Data API で確認できます
+   ===================================================================== */
+const CONFIG = {
+  SUPABASE_URL: "https://ppxzkegstzkngfksripq.supabase.co",       // 例: "https://abcdefghijkl.supabase.co"
+  SUPABASE_ANON_KEY: "sb_publishable_kMi9zBZa-o_HmRtPeb4-yA_VFKPiMBB"   // 例: "sb_publishable_..."（Publishable key。旧形式の anon キーでも可）
+};
+
+/* ============ DATA ============ */
+const M9_ITEMS = [{"id": "panel_tank_blow", "name": "パネルタンクブロー", "group": "濾過殺菌工程", "steps": [{"name": "タンク排出", "min": 0}, {"name": "ドレン", "min": 41}, {"name": "停止", "min": 46}], "durationMin": 46}, {"id": "filter_sterilize", "name": "濾過殺菌", "group": "濾過殺菌工程", "steps": [{"name": "管路構成", "min": 0}, {"name": "初期ブロー1", "min": 1}, {"name": "FI満液化1", "min": 1}, {"name": "FI満液化2", "min": 3}, {"name": "FI満液化3", "min": 3}, {"name": "停止", "min": 3}, {"name": "管路構成", "min": 4}, {"name": "初期ブロー1", "min": 4}, {"name": "FI満液化1", "min": 5}, {"name": "FI満液化2", "min": 6}, {"name": "FI満液化3", "min": 6}, {"name": "原水FI熱殺 CIP送液", "min": 7}, {"name": "原水FI熱殺 CIP循環", "min": 15}, {"name": "原水FI熱殺 CIP排出", "min": 56}, {"name": "原水FI熱殺 CIP送液", "min": 63}, {"name": "原水FI熱殺 CIP排出", "min": 77}, {"name": "原水FI熱殺 CIPドレン", "min": 82}, {"name": "停止", "min": 87}], "durationMin": 87}, {"id": "ro_storage", "name": "RO貯水", "group": "濾過殺菌工程", "steps": [{"name": "管路構成", "min": 0}, {"name": "初期ブロー1", "min": 0}, {"name": "FI満液化1", "min": 1}, {"name": "FI満液化2", "min": 2}, {"name": "FI満液化3", "min": 2}, {"name": "RO貯水", "min": 3}, {"name": "送液待機", "min": 85}], "durationMin": 85}, {"id": "product_water_cip_al", "name": "製品水UHT CIP（AL）", "group": "製品水UHT CIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "機内給水-1", "min": 0}, {"name": "機内給水-2", "min": 1}, {"name": "初期リンス-1", "min": 2}, {"name": "初期リンス-2", "min": 3}, {"name": "BT給水", "min": 8}, {"name": "AL洗浄液添加", "min": 8}, {"name": "AL循環-1", "min": 13}, {"name": "AL循環-2", "min": 14}, {"name": "AL排出", "min": 28}, {"name": "ドレン", "min": 29}, {"name": "ALリンス-1", "min": 29}, {"name": "ALリンス-2", "min": 34}, {"name": "BT排出", "min": 36}, {"name": "最終リンス-1", "min": 37}, {"name": "最終リンス-2", "min": 39}, {"name": "BT排出", "min": 44}, {"name": "ドレン", "min": 47}, {"name": "終了", "min": 48}, {"name": "停止", "min": 48}], "durationMin": 48}, {"id": "product_water_cip_ac", "name": "製品水UHT CIP（AC）", "group": "製品水UHT CIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "機内給水-1", "min": 0}, {"name": "機内給水-2", "min": 1}, {"name": "初期リンス-1", "min": 2}, {"name": "初期リンス-2", "min": 3}, {"name": "BT給水", "min": 8}, {"name": "AC洗浄液添加", "min": 8}, {"name": "AC循環-1", "min": 13}, {"name": "AC循環-2", "min": 14}, {"name": "AC排出", "min": 28}, {"name": "ドレン", "min": 29}, {"name": "ACリンス-1", "min": 29}, {"name": "ACリンス-2", "min": 34}, {"name": "BT排出", "min": 36}, {"name": "最終リンス-1", "min": 37}, {"name": "最終リンス-2", "min": 39}, {"name": "BT排出", "min": 44}, {"name": "ドレン", "min": 47}, {"name": "終了", "min": 48}, {"name": "停止", "min": 48}], "durationMin": 48}, {"id": "filler_cip_al", "name": "フィラCIP（AL）", "group": "フィラCIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "CIPタンク給水", "min": 1}, {"name": "アセプタンク給水", "min": 1}, {"name": "初期リンス", "min": 2}, {"name": "タンク排出", "min": 4}, {"name": "ポンプ停止", "min": 6}, {"name": "ドレン", "min": 6}, {"name": "CIPタンク給水", "min": 6}, {"name": "アセプタンク給水", "min": 7}, {"name": "フィラ通水", "min": 7}, {"name": "AL添加", "min": 8}, {"name": "AL循環-1", "min": 10}, {"name": "AL循環-2", "min": 14}, {"name": "AL排出", "min": 23}, {"name": "ポンプ停止", "min": 25}, {"name": "ドレン", "min": 25}, {"name": "終了", "min": 25}, {"name": "CIPタンク給水", "min": 25}, {"name": "アセプタンク給水", "min": 26}, {"name": "ALリンス", "min": 26}, {"name": "タンク排出", "min": 32}, {"name": "ドレン", "min": 34}, {"name": "CIPタンク給水", "min": 34}, {"name": "アセプタンク給水", "min": 35}, {"name": "最終リンス-1", "min": 36}, {"name": "最終リンス-2", "min": 37}, {"name": "タンク排出", "min": 42}, {"name": "ポンプ停止", "min": 44}, {"name": "脱圧ドレン", "min": 44}, {"name": "終了", "min": 45}, {"name": "停止", "min": 46}], "durationMin": 46}, {"id": "filler_cip_ac", "name": "フィラCIP（AC）", "group": "フィラCIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "CIPタンク給水", "min": 1}, {"name": "アセプタンク給水", "min": 1}, {"name": "初期リンス", "min": 2}, {"name": "タンク排出", "min": 4}, {"name": "ポンプ停止", "min": 6}, {"name": "ドレン", "min": 6}, {"name": "CIPタンク給水", "min": 6}, {"name": "アセプタンク給水", "min": 7}, {"name": "フィラ通水", "min": 7}, {"name": "AC添加", "min": 8}, {"name": "AC循環-1", "min": 10}, {"name": "AC循環-2", "min": 14}, {"name": "AC排出", "min": 23}, {"name": "ポンプ停止", "min": 25}, {"name": "ドレン", "min": 25}, {"name": "終了", "min": 25}, {"name": "CIPタンク給水", "min": 25}, {"name": "アセプタンク給水", "min": 26}, {"name": "ACリンス", "min": 26}, {"name": "タンク排出", "min": 32}, {"name": "ドレン", "min": 34}, {"name": "CIPタンク給水", "min": 34}, {"name": "アセプタンク給水", "min": 35}, {"name": "最終リンス-1", "min": 36}, {"name": "最終リンス-2", "min": 37}, {"name": "タンク排出", "min": 42}, {"name": "ポンプ停止", "min": 44}, {"name": "脱圧ドレン", "min": 44}, {"name": "終了", "min": 45}, {"name": "停止", "min": 46}], "durationMin": 46}, {"id": "chamber_cip_al", "name": "チャンバーCIP（AL）", "group": "チャンバーCIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "BT給水", "min": 0}, {"name": "機内給水-1", "min": 4}, {"name": "機内給水-2", "min": 4}, {"name": "加熱循環", "min": 7}, {"name": "AC添加", "min": 13}, {"name": "AC送液待機", "min": 21}, {"name": "ボトルバイパスAC送液中", "min": 29}, {"name": "ボトルリンサAC送液中", "min": 32}, {"name": "回収タンク排出", "min": 40}, {"name": "AC送液待機", "min": 41}, {"name": "チャンバAC送液中", "min": 41}, {"name": "AC送液待機", "min": 55}, {"name": "フィラAC排出", "min": 57}, {"name": "全タンク排出", "min": 58}, {"name": "ACすすぎ1", "min": 61}, {"name": "ACすすぎ2", "min": 65}, {"name": "ACすすぎ送液待機", "min": 69}, {"name": "チャンバAC送液中ACすすぎ中", "min": 69}, {"name": "ACすすぎ送液待機", "min": 96}, {"name": "ボトルバイパスACすすぎ中", "min": 97}, {"name": "ボトルリンサACすすぎ中", "min": 98}, {"name": "ACすすぎ送液待機", "min": 107}, {"name": "全タンク排出", "min": 108}, {"name": "ポンプ停止", "min": 113}, {"name": "ドレン", "min": 114}, {"name": "停止", "min": 118}], "durationMin": 118}, {"id": "chamber_cip_ac", "name": "チャンバーCIP（AC）", "group": "チャンバーCIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "BT給水", "min": 0}, {"name": "機内給水-1", "min": 4}, {"name": "機内給水-2", "min": 4}, {"name": "加熱循環", "min": 7}, {"name": "AC添加", "min": 13}, {"name": "AC送液待機", "min": 21}, {"name": "ボトルバイパスAC送液中", "min": 29}, {"name": "ボトルリンサAC送液中", "min": 32}, {"name": "回収タンク排出", "min": 40}, {"name": "AC送液待機", "min": 41}, {"name": "チャンバAC送液中", "min": 41}, {"name": "AC送液待機", "min": 55}, {"name": "フィラAC排出", "min": 57}, {"name": "全タンク排出", "min": 58}, {"name": "ACすすぎ1", "min": 61}, {"name": "ACすすぎ2", "min": 65}, {"name": "ACすすぎ送液待機", "min": 69}, {"name": "チャンバACすすぎ中", "min": 69}, {"name": "ACすすぎ送液待機", "min": 96}, {"name": "ボトルバイパスACすすぎ中", "min": 97}, {"name": "ボトルリンサACすすぎ中", "min": 98}, {"name": "ACすすぎ送液待機", "min": 107}, {"name": "全タンク排出", "min": 108}, {"name": "ポンプ停止", "min": 113}, {"name": "ドレン", "min": 114}, {"name": "停止", "min": 118}], "durationMin": 118}, {"id": "chamber_cip_hypo", "name": "チャンバーCIP（次亜）", "group": "チャンバーCIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "BT炭次亜給水", "min": 1}, {"name": "機内給水-1", "min": 54}, {"name": "機内給水-2", "min": 54}, {"name": "加熱循環", "min": 55}, {"name": "炭次亜送液待機", "min": 59}, {"name": "ボトルバイパス炭次亜送液中", "min": 67}, {"name": "ボトルリンサ炭次亜送液中", "min": 72}, {"name": "回収タンク排出", "min": 86}, {"name": "炭次亜送液待機", "min": 87}, {"name": "チャンバ炭次亜送液中", "min": 87}, {"name": "炭次亜送液待機", "min": 119}, {"name": "フィラ炭次亜排出", "min": 120}, {"name": "全タンク排出", "min": 121}, {"name": "炭次亜すすぎ1", "min": 124}, {"name": "炭次亜すすぎ2", "min": 130}, {"name": "炭次亜すすぎ送液待機", "min": 134}, {"name": "チャンバ炭次亜すすぎ中", "min": 134}, {"name": "炭次亜すすぎ送液待機", "min": 159}, {"name": "ボトルバイパス炭次亜すすぎ中", "min": 160}, {"name": "ボトルリンサ炭次亜すすぎ中", "min": 161}, {"name": "炭次亜すすぎ送液待機", "min": 170}, {"name": "全タンク排出", "min": 171}, {"name": "ポンプ停止", "min": 177}, {"name": "ドレン", "min": 177}, {"name": "停止", "min": 181}], "durationMin": 181}, {"id": "product_water_sip", "name": "製品水UHT 機器殺菌", "group": "UHT機器殺菌・SIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "初期ブロー", "min": 0}, {"name": "BT給水", "min": 0}, {"name": "機内給水-1", "min": 1}, {"name": "機内給水-2", "min": 2}, {"name": "機器滅菌加熱-1", "min": 2}, {"name": "機器滅菌加熱-2", "min": 10}, {"name": "機器滅菌保持", "min": 14}, {"name": "温度安定化-1", "min": 44}, {"name": "温度安定化-2", "min": 44}, {"name": "水運転待機-1", "min": 52}, {"name": "水運転待機-2", "min": 62}, {"name": "BT排出", "min": 67}, {"name": "製品置換", "min": 68}, {"name": "製品製造中", "min": 70}], "durationMin": 70}, {"id": "acetan_sip", "name": "アセタンSIP", "group": "UHT機器殺菌・SIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "蒸気吹込-1", "min": 0}, {"name": "一時排出", "min": 4}, {"name": "蒸気吹込-2", "min": 5}, {"name": "蒸気加熱", "min": 7}, {"name": "加熱保持", "min": 10}, {"name": "蒸気排出", "min": 40}, {"name": "管路構成", "min": 40}, {"name": "エア吹込", "min": 40}, {"name": "エア冷却", "min": 40}, {"name": "水冷却", "min": 56}, {"name": "冷却停止", "min": 65}, {"name": "終了", "min": 67}, {"name": "停止", "min": 67}], "durationMin": 67}, {"id": "uht_startup", "name": "殺菌水UHT生産立ち上げ", "group": "生産立ち上げ", "steps": [{"name": "管路構成", "min": 0}, {"name": "初期ブロー", "min": 0}, {"name": "BT給水", "min": 0}, {"name": "機内給水1", "min": 4}, {"name": "機内給水2", "min": 5}, {"name": "BT給水 レベル確認", "min": 6}, {"name": "機器殺菌加熱1", "min": 6}, {"name": "機器殺菌加熱2", "min": 16}, {"name": "機器殺菌保持", "min": 21}, {"name": "温度安定化1", "min": 51}, {"name": "温度安定化2", "min": 56}, {"name": "熱水循環待機", "min": 82}, {"name": "ボトルリンサ熱水殺菌待機", "min": 83}, {"name": "ボトルバイパス熱水送液中", "min": 83}, {"name": "ボトルリンサ熱水送液中", "min": 84}, {"name": "ボトルリンサ熱水殺菌待機", "min": 117}, {"name": "チャンバ熱水殺菌待機", "min": 118}, {"name": "チャンバ熱水送液中", "min": 119}, {"name": "チャンバ熱水殺菌待機", "min": 156}, {"name": "流量調整", "min": 157}, {"name": "温度調整", "min": 158}, {"name": "生産送液準備", "min": 166}, {"name": "生産送液待機", "min": 168}, {"name": "生産送液中", "min": 170}], "durationMin": 170}, {"id": "air_filter_sip", "name": "推進エアフィルタSIP", "group": "フィラ廻りSIP", "steps": [{"name": "待機", "min": 0}, {"name": "管路構成", "min": 7}, {"name": "蒸気吹込-1", "min": 7}, {"name": "蒸気加熱", "min": 7}, {"name": "加熱保持", "min": 9}, {"name": "蒸気排出", "min": 39}, {"name": "管路構成", "min": 39}, {"name": "エア吹込", "min": 39}, {"name": "エア冷却", "min": 40}, {"name": "冷却停止", "min": 49}, {"name": "終了", "min": 50}, {"name": "停止", "min": 50}], "durationMin": 50}, {"id": "air_line_sip", "name": "推進エアラインSIP", "group": "フィラ廻りSIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "蒸気吹込-1", "min": 7}, {"name": "蒸気加熱", "min": 7}, {"name": "加熱保持", "min": 7}, {"name": "加熱完了確認", "min": 15}, {"name": "終了", "min": 50}, {"name": "停止", "min": 50}], "durationMin": 50}, {"id": "filler_sip", "name": "フィラSIP", "group": "フィラ廻りSIP", "steps": [{"name": "充填CT水送り", "min": 0}, {"name": "管路構成", "min": 3}, {"name": "蒸気吹込-1", "min": 6}, {"name": "一時停止", "min": 7}, {"name": "蒸気吹込-2", "min": 8}, {"name": "蒸気加熱", "min": 19}, {"name": "加熱保持", "min": 19}, {"name": "加熱完了", "min": 49}, {"name": "蒸気排出", "min": 49}, {"name": "管路構成", "min": 49}, {"name": "エア吹込", "min": 49}, {"name": "エア冷却", "min": 50}, {"name": "水冷却", "min": 59}, {"name": "冷却停止", "min": 65}, {"name": "終了", "min": 66}, {"name": "停止", "min": 66}], "durationMin": 66}, {"id": "cap_rinse_sip", "name": "キャップリンス水ラインSIP", "group": "フィラ廻りSIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "初期ブロー準備", "min": 0}, {"name": "初期ブロー1", "min": 0}, {"name": "初期ブロー2", "min": 4}, {"name": "エア供給完了確認", "min": 5}, {"name": "終了", "min": 7}, {"name": "管路構成", "min": 7}, {"name": "蒸気吹込-1", "min": 7}, {"name": "蒸気加熱", "min": 7}, {"name": "加熱保持", "min": 9}, {"name": "加熱完了確認", "min": 39}, {"name": "蒸気殺菌完了", "min": 50}, {"name": "エア吹込", "min": 50}, {"name": "エア冷却", "min": 51}, {"name": "冷却完了確認", "min": 69}, {"name": "終了", "min": 69}, {"name": "停止", "min": 69}], "durationMin": 69}, {"id": "bottle_mouth_sip", "name": "瓶口洗浄ラインSIP", "group": "フィラ廻りSIP", "steps": [{"name": "管路構成", "min": 0}, {"name": "蒸気吹込-1", "min": 13}, {"name": "蒸気加熱", "min": 13}, {"name": "加熱保持", "min": 13}, {"name": "加熱完了確認", "min": 16}, {"name": "管路構成", "min": 16}, {"name": "エア吹込", "min": 16}, {"name": "エア冷却", "min": 17}, {"name": "冷却完了確認", "min": 19}, {"name": "終了", "min": 19}, {"name": "停止", "min": 19}], "durationMin": 19}];
+
+/* ライン別 個別工程データ（データのあるラインのみ登録） */
+/* M5〜M8：「ライン別洗浄時間」表の値（工程ごとの開始〜終了のみ・単位：分）
+   ※チャンバーCIPは「チャンバー洗浄」の値（薬液調整は洗浄時間に含まれるため別計上しない） */
+const SIMPLE_MIN = {
+  panel_tank_blow:      {m5:35,  m6:46,  m7:35,  m8:40},
+  filter_sterilize:     {m5:93,  m6:81,  m7:88,  m8:90},
+  ro_storage:           {m5:80,  m6:80,  m7:85,  m8:70},
+  product_water_cip_al: {m5:53,  m6:50,  m7:53,  m8:55},
+  product_water_cip_ac: {m5:53,  m6:50,  m7:53,  m8:55},
+  filler_cip_al:        {m5:50,  m6:50,  m7:43,  m8:45},
+  filler_cip_ac:        {m5:50,  m6:50,  m7:43,  m8:45},
+  chamber_cip_al:       {m5:105, m6:110, m7:95,  m8:95},
+  chamber_cip_ac:       {m5:105, m6:110, m7:95,  m8:95},
+  chamber_cip_hypo:     {m5:138, m6:133, m7:174, m8:130},
+  product_water_sip:    {m5:52,  m6:50,  m7:55,  m8:55},
+  acetan_sip:           {m5:87,  m6:65,  m7:70,  m8:75},
+  uht_startup:          {m5:183, m6:175, m7:164, m8:190},   // M6・M7は表の入力ミス（+100分で補正）
+  air_filter_sip:       {m5:47,  m6:43,  m7:43,  m8:55},
+  air_line_sip:         {m5:47,  m6:50,  m7:50,  m8:55},
+  filler_sip:           {m5:70,  m6:70,  m7:60,  m8:70},
+  cap_rinse_sip:        {m5:62,  m6:70,  m7:56,  m8:65},
+  bottle_mouth_sip:     {m5:20,  m6:20,  m7:19,  m8:20}
+};
+function simpleItems(line){
+  return M9_ITEMS.map(it=>{
+    const d = SIMPLE_MIN[it.id] && SIMPLE_MIN[it.id][line];
+    if(d==null) return null;
+    return {id:it.id, name:it.name, group:it.group, simple:true,
+      steps:[{name:"開始", min:0}, {name:"終了", min:d}], durationMin:d};
+  }).filter(Boolean);
+}
+const LINE_DATA = { m5:simpleItems("m5"), m6:simpleItems("m6"), m7:simpleItems("m7"), m8:simpleItems("m8"), m9:M9_ITEMS };
+const LINES = [
+  {id:"m5", name:"M5ライン"}, {id:"m6", name:"M6ライン"}, {id:"m7", name:"M7ライン"},
+  {id:"m8", name:"M8ライン"}, {id:"m9", name:"M9ライン"}
+];
+function lineNameOf(id){ const l = LINES.find(x=>x.id===id); return l ? l.name : id; }
+
+/* ライン別 平均モード所要時間（分）※固定値・画面からは変更不可（工程別データのあるラインは連動計算の結果を使用） */
+const MODE_MIN = { m5:180, m6:170, m7:180, m8:180, m9:170 };
+const MODE_ID = "mode";
+const MODE_GROUP = "モード（CIP＋SIP一連）";
+const MODE_COVERS = ["UHT機器殺菌・SIP", "生産立ち上げ", "フィラ廻りSIP"];
+
+/* ---------------------------------------------------------------------
+   モード内の並列・連動ルール（工程別データのあるラインのみ）
+   start.at   : モード開始からの分（同時スタート＝0）
+   start.lane : 別工程の指定ステップ開始をきっかけに起動（きっかけ型）
+   gates      : 指定ステップの前で、他工程の終了を待つ（待ち合わせ型）
+   --------------------------------------------------------------------- */
+const FILLER_SIPS = ["acetan_sip","filler_sip","air_filter_sip","air_line_sip","cap_rinse_sip","bottle_mouth_sip"];
+const MODE_DEFS = {
+  m9: {
+    lanes: [
+      {id:"uht_startup", short:"殺菌水UHT", start:{at:0},
+        gates:[{step:"生産送液中", waitEnd:FILLER_SIPS, label:"充填機立ち上げ（フィラ廻りSIP全終了）待ち", cond:"フィラ廻りSIP全終了（充填機立ち上げ）"}]},
+      {id:"product_water_sip", short:"製品水UHT", start:{at:0},
+        gates:[{step:"BT排出", waitEnd:["acetan_sip"], label:"アセタンSIP終了待ち（水運転待機ループ）", cond:"アセタンSIP終了"}]},
+      {id:"acetan_sip", short:"アセタンSIP", start:{at:0}},
+      {id:"filler_sip", short:"フィラSIP", start:{at:0}},
+      {id:"air_filter_sip", short:"推進エアフィルタ", start:{at:0}},
+      {id:"air_line_sip", short:"推進エアライン", start:{at:0}},
+      {id:"cap_rinse_sip", short:"キャップリンス", start:{at:0}},
+      {id:"bottle_mouth_sip", short:"瓶口洗浄ライン", start:{lane:"uht_startup", step:"チャンバ熱水送液中"},
+        dropLeading:"待機", triggerLabel:"殺菌水UHTのチャンバ熱水送液開始で起動"}
+    ]
+  }
+};
+
+function computeMode(def, map){
+  const lanes = def.lanes.filter(d=>map[d.id]).map(d=>{
+    const it = map[d.id];
+    let rel = it.steps.map(s=>({name:s.name, min:s.min})), base = 0;
+    if(d.dropLeading && rel.length>1 && rel[0].name===d.dropLeading){
+      base = rel[1].min;
+      rel = rel.slice(1).map(s=>({name:s.name, min:s.min-base}));
+    }
+    const dur = it.durationMin - base;
+    return {def:d, id:d.id, name:it.name, short:d.short||it.name, rel, dur, start:0, end:dur, steps:[], waits:[]};
+  });
+  const by = {}; lanes.forEach(L=>by[L.id]=L);
+  for(let iter=0; iter<20; iter++){
+    let changed = false;
+    lanes.forEach(L=>{
+      const sd = L.def.start || {at:0};
+      let st = sd.at || 0;
+      if(sd.lane && by[sd.lane]){
+        const s = by[sd.lane].steps.find(x=>x.name===sd.step);
+        st = s ? s.t : 0;
+      }
+      let shift = 0; const waits = [], steps = [];
+      L.rel.forEach(s=>{
+        let t = st + s.min + shift;
+        const g = (L.def.gates||[]).find(g=>g.step===s.name);
+        if(g){
+          const ready = Math.max.apply(null, g.waitEnd.filter(id=>by[id]).map(id=>by[id].end));
+          if(ready > t){ waits.push({label:g.label, from:t, to:ready}); shift += ready - t; t = ready; }
+          steps.push({name:s.name, t:t, gate:{label:g.label, cond:g.cond||g.label, ready:ready}});
+        } else {
+          steps.push({name:s.name, t:t});
+        }
+      });
+      const end = st + L.dur + shift;
+      if(st!==L.start || end!==L.end || JSON.stringify(steps)!==JSON.stringify(L.steps)) changed = true;
+      L.start = st; L.end = end; L.steps = steps; L.waits = waits;
+    });
+    if(!changed) break;
+  }
+  const total = Math.max.apply(null, lanes.map(L=>L.end));
+  return {lanes, total};
+}
+
+/* 個別データ未登録ラインは、登録済みライン中の最長時間を工程ごとに暫定採用 */
+function fallbackItems(){
+  const best = {}, order = [];
+  Object.keys(LINE_DATA).forEach(ln=>{
+    LINE_DATA[ln].forEach(it=>{
+      if(!best[it.id]){ order.push(it.id); best[it.id] = it; }
+      else if(it.durationMin > best[it.id].durationMin) best[it.id] = it;
+    });
+  });
+  return order.map(id=>best[id]);
+}
+
+const modelCache = {};
+function getLineModel(line){
+  if(modelCache[line]) return modelCache[line];
+  const fallback = !LINE_DATA[line];
+  const base = LINE_DATA[line] || fallbackItems();
+  const map = {}; base.forEach(it=>map[it.id]=it);
+  let modeItem;
+  if(MODE_DEFS[line] && !fallback){
+    const r = computeMode(MODE_DEFS[line], map);
+    modeItem = {
+      id:MODE_ID, name:"モード", group:MODE_GROUP, isMode:true, lanes:r.lanes, def:MODE_DEFS[line],
+      sub:"殺菌水UHT・製品水UHT立ち上げ＋フィラ廻りSIP（並行進行・連動を工程別に計算）",
+      steps:[{name:"モード開始", min:0}, {name:"生産送液開始（モード終了）", min:r.total}],
+      durationMin:r.total
+    };
+  } else {
+    const m = MODE_MIN[line];
+    modeItem = {
+      id:MODE_ID, name:"モード", group:MODE_GROUP, isMode:true, fixed:true,
+      sub:"殺菌水UHT立ち上げ〜フィラ廻りSIPの一連工程（並列進行含む）／ライン平均時間で固定",
+      steps:[{name:"モード開始", min:0}, {name:"モード終了", min:m}],
+      durationMin:m
+    };
+  }
+  const items = [modeItem].concat(base);
+  map[MODE_ID] = modeItem;
+  const groups = [];
+  items.forEach(it=>{ if(!groups.includes(it.group)) groups.push(it.group); });
+  return (modelCache[line] = {line, items, map, groups, fallback, modeItem});
+}
+
+function buildSchedule(model, itemIds){
+  const segs = []; let off = 0;
+  (itemIds||[]).map(id=>model.map[id]).filter(Boolean).forEach(it=>{
+    segs.push({item:it, off:off, dur:it.durationMin});
+    off += it.durationMin;
+  });
+  return {segs, total:off};
+}
+
+/* ============ UTIL ============ */
+function pad2(n){ return String(n).padStart(2,"0"); }
+function dateStrOf(d){ return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+function timeStrOf(d){ return pad2(d.getHours())+":"+pad2(d.getMinutes()); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function formatDur(min){
+  min = Math.round(min);
+  const h = Math.floor(min/60), m = min%60;
+  if(h>0) return h+"時間"+(m>0? m+"分":"");
+  return m+"分";
+}
+function formatClock(date, baseDateStr){
+  const base = new Date(baseDateStr+"T00:00:00");
+  const dOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((dOnly-base)/86400000);
+  const h = date.getHours(), m = date.getMinutes();
+  const hourNum = (diffDays===1 && (h<8 || (h===8 && m===0))) ? h+24 : h;
+  let badge = "";
+  if(diffDays===1) badge = "翌日";
+  else if(diffDays>=2) badge = "+"+diffDays+"日";
+  else if(diffDays<0) badge = "前日";
+  return {text:pad2(hourNum)+":"+pad2(m), badge};
+}
+function fmt(ms, ds){ const fc = formatClock(new Date(ms), ds); return (fc.badge? '<span class="badge-day">'+fc.badge+'</span>' : "")+fc.text; }
+function fmtText(ms, ds){ const fc = formatClock(new Date(ms), ds); return (fc.badge?"("+fc.badge+") ":"")+fc.text; }
+function remainText(t, nowMs){
+  const diff = t - nowMs;
+  if(diff <= 0) return "経過済み";
+  const totalMin = Math.ceil(diff/60000);
+  const h = Math.floor(totalMin/60), m = totalMin%60;
+  return "あと "+(h>0? h+"時間":"")+m+"分";
+}
+function cd(t, nowMs){ return '<span class="cd" data-t="'+t+'">'+remainText(t, nowMs)+'</span>'; }
+function pct(v, T){ return Math.max(0, Math.min(100, T>0 ? v/T*100 : 0)).toFixed(3); }
+function showToast(msg){
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=>el.classList.remove("show"), 2200);
+}
+function copyText(text, okMsg){
+  const done = ()=>showToast(okMsg || "コピーしました");
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ showToast("コピーに失敗しました"); }
+  document.body.removeChild(ta);
+}
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k, v){ try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} }
+
+/* ============ BACKEND（Supabase / デモ） ============ */
+const ERR_MSG = {
+  invalid_pin:"PINが違います",
+  locked:"PINの誤入力が続いたため、しばらくロックされています（15分後に再試行）",
+  already_running:"このラインは既に進行中です",
+  not_running:"このラインは進行中ではありません",
+  not_paused:"一時停止中ではありません",
+  bad_line:"ラインの指定が不正です",
+  bad_time:"開始時刻が範囲外です（2日前〜1日後まで）"
+};
+function errText(e){
+  const m = (e && e.message) || String(e);
+  return ERR_MSG[m] || ("通信エラー："+m);
+}
+
+const Backend = (function(){
+  let rows = [], offset = 0, conn = {state:"warn", text:"接続中…"}, listeners = [];
+  const isConfigured = !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY);
+  const forceDemo = /[?&]demo=1/.test(location.search);
+  const mode = (isConfigured && !forceDemo) ? "supabase" : "demo";
+  let client = null, lastOk = 0, lastErr = "";
+
+  function emit(){ listeners.forEach(f=>{ try{ f(); }catch(e){ console.error(e); } }); }
+  function setConn(state, text){ conn = {state, text}; emit(); }
+
+  /* ---- demo: この端末（ブラウザ）内だけで共有を再現 ---- */
+  const DEMO_KEY = "cipShareDemoRowsV1", DEMO_PIN = "0000";
+  let bc = null;
+  function demoLoad(){ try{ return JSON.parse(lsGet(DEMO_KEY)) || []; }catch(e){ return []; } }
+  function demoSave(r){ lsSet(DEMO_KEY, JSON.stringify(r)); rows = r; emit(); if(bc) bc.postMessage("changed"); }
+  function demoRpc(name, a){
+    const nowIso = new Date().toISOString();
+    if(name==="server_now") return nowIso;
+    if(a.p_pin !== DEMO_PIN) throw new Error("invalid_pin");
+    if(name==="verify_pin") return {ok:true};
+    if(!LINES.some(l=>l.id===a.p_line)) throw new Error("bad_line");
+    let r = demoLoad();
+    const cur = r.find(x=>x.line===a.p_line);
+    if(name==="start_run"){
+      if(cur && !a.p_force) throw new Error("already_running");
+      const st = a.p_started_at || nowIso;
+      const diff = Date.parse(st) - Date.now();
+      if(diff < -2*86400000 || diff > 86400000) throw new Error("bad_time");
+      r = r.filter(x=>x.line!==a.p_line);
+      r.push({line:a.p_line, status:"running", plan:a.p_plan, started_at:st, paused_at:null, paused_total_sec:0, updated_by:a.p_by||null, updated_at:nowIso});
+    } else {
+      if(!cur) throw new Error("not_running");
+      if(name==="pause_run"){ if(cur.status!=="running") throw new Error("not_running"); cur.status="paused"; cur.paused_at=nowIso; }
+      else if(name==="resume_run"){ if(cur.status!=="paused") throw new Error("not_paused"); cur.paused_total_sec += Math.round((Date.now()-Date.parse(cur.paused_at))/1000); cur.status="running"; cur.paused_at=null; }
+      else if(name==="set_start"){
+        const diff = Date.parse(a.p_started_at) - Date.now();
+        if(diff < -2*86400000 || diff > 86400000) throw new Error("bad_time");
+        cur.started_at = a.p_started_at;
+      }
+      else if(name==="finish_run"){ r = r.filter(x=>x.line!==a.p_line); }
+      if(cur){ cur.updated_by = a.p_by||null; cur.updated_at = nowIso; }
+    }
+    demoSave(r);
+    return {ok:true};
+  }
+
+  /* ---- supabase ---- */
+  async function syncClock(){
+    try{
+      const t0 = Date.now();
+      const {data, error} = await client.rpc("server_now");
+      const t1 = Date.now();
+      if(!error && data) offset = Date.parse(data) - (t0+t1)/2;
+    }catch(e){}
+  }
+  async function refresh(){
+    if(mode==="demo"){ rows = demoLoad(); emit(); return; }
+    try{
+      const {data, error} = await client.from("cip_runs").select("*");
+      if(error) throw error;
+      rows = data || []; lastOk = Date.now(); lastErr = "";
+      if(conn.state==="err") setConn("warn", "再接続中…"); else emit();
+    }catch(e){
+      lastErr = (e && (e.message || e.code)) || "通信エラー";
+      setConn("err", "未接続（"+lastErr+"）");
+    }
+  }
+  let channelOk = false;
+  function updateConnText(){
+    if(mode==="demo") return;
+    if(Date.now()-lastOk > 60000){ setConn("err", "未接続"+(lastErr ? "（"+lastErr+"）" : "")+" ▸診断"); return; }
+    setConn(channelOk ? "ok" : "warn", channelOk ? "同期中" : "同期中（定期更新）");
+  }
+
+  async function init(){
+    if(mode==="demo"){
+      rows = demoLoad();
+      try{ bc = new BroadcastChannel("cipShareDemo"); bc.onmessage = ()=>{ rows = demoLoad(); emit(); }; }catch(e){}
+      window.addEventListener("storage", (e)=>{ if(e.key===DEMO_KEY){ rows = demoLoad(); emit(); } });
+      setConn("warn", "デモモード");
+      return;
+    }
+    if(!window.supabase || !window.supabase.createClient){ setConn("err", "ライブラリを読み込めません"); return; }
+    client = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {auth:{persistSession:false, autoRefreshToken:false}});
+    await syncClock();
+    await refresh();
+    updateConnText();
+    client.channel("cip_runs_changes")
+      .on("postgres_changes", {event:"*", schema:"public", table:"cip_runs"}, ()=>refresh().then(updateConnText))
+      .subscribe((status)=>{ channelOk = (status==="SUBSCRIBED"); updateConnText(); });
+    setInterval(()=>refresh().then(updateConnText), 15000);
+    document.addEventListener("visibilitychange", ()=>{
+      if(document.visibilityState==="visible"){ syncClock(); refresh().then(updateConnText); }
+    });
+    window.addEventListener("online", ()=>refresh().then(updateConnText));
+  }
+
+  async function rpc(name, args){
+    if(mode==="demo") return demoRpc(name, args);
+    const {data, error} = await client.rpc(name, args);
+    if(error) throw new Error(error.message);
+    if(data && data.ok===false) throw new Error(data.error);
+    await refresh(); updateConnText();
+    return data;
+  }
+
+  return {
+    init, rpc, mode,
+    rows:()=>rows,
+    now:()=>Date.now()+offset,
+    conn:()=>conn,
+    onChange:(f)=>listeners.push(f)
+  };
+})();
+function now(){ return Backend.now(); }
+
+/* ============ STATE ============ */
+const LS_PRESET_KEY = "cipSipPresetsV1_m9";
+const LS_STATE_KEY = "cipSipStateV1_m9";
+const LS_PIN_KEY = "cipSharePin", LS_BY_KEY = "cipShareBy", LS_TAB_KEY = "cipShareTab";
+const state = {
+  selected: [],
+  openDetails: new Set(),
+  tab: "board"
+};
+let curLine = "m9", MODEL = null, ITEMS = [], ITEM_MAP = {}, GROUP_ORDER = [];
+function buildLine(line){
+  curLine = line;
+  MODEL = getLineModel(line);
+  ITEMS = MODEL.items; ITEM_MAP = MODEL.map; GROUP_ORDER = MODEL.groups;
+}
+function modeSelected(){ return state.selected.some(it=>it.id===MODE_ID); }
+function isCovered(it){ return MODE_COVERS.includes(it.group); }
+function sanitizeSelection(){
+  if(!modeSelected()) return 0;
+  const before = state.selected.length;
+  state.selected = state.selected.filter(it=>!isCovered(it));
+  return before - state.selected.length;
+}
+function idsToItems(ids){ return ids.map(id=>ITEM_MAP[id]).filter(Boolean); }
+function lineName(){ return lineNameOf(curLine); }
+function renderLineBanner(){
+  const el = document.getElementById("lineBanner");
+  if(MODEL.items.some(it=>it.simple)){
+    el.style.display = "block";
+    el.textContent = "※"+lineName()+"の工程時間は「ライン別洗浄時間」表の値（開始〜終了のみ）です。ステップ詳細とモード内の並行工程は、工程データを取得したら追加します。モード時間は"+lineName()+"の平均値（固定）です。";
+  } else if(MODEL.fallback){
+    el.style.display = "block";
+    el.textContent = "※"+lineName()+"の個別工程データは未登録のため、登録済みライン（"+Object.keys(LINE_DATA).map(k=>k.toUpperCase()).join("・")+"）の最長時間を暫定適用しています。モード時間は"+lineName()+"の平均値です。";
+  } else el.style.display = "none";
+}
+
+/* ============ SCHEDULE RENDER（計画・進行状況 共通） ============ */
+function statusTag(st){
+  if(st==="active") return '<span class="stag active">進行中</span>';
+  if(st==="done") return '<span class="stag done">完了</span>';
+  return "";
+}
+function lastStepName(steps, rel){
+  let cur = steps[0] ? steps[0].name : "";
+  for(const s of steps){ if(s.t <= rel) cur = s.name; else break; }
+  return cur;
+}
+function laneNow(L, rel){
+  const w = L.waits.find(w=>rel>=w.from && rel<w.to);
+  if(w) return "待機："+w.label;
+  return lastStepName(L.steps, rel);
+}
+function stepTableHtml(steps, nowMs, ds){
+  let h = '<table class="step-table"><thead><tr><th>#</th><th>工程名</th><th>時刻</th><th>残り</th></tr></thead><tbody>';
+  steps.forEach((x,i)=>{
+    const next = steps[i+1];
+    const isCur = x.t<=nowMs && next && next.t>nowMs;
+    const cls = isCur ? "current" : (x.t<=nowMs ? "past" : "");
+    h += '<tr class="'+cls+'"><td>'+(i+1)+'</td><td>'+esc(x.name)+(x.gate?'<div class="gate-note">⇢ '+esc(x.gate.label)+'</div>':'')+'</td>'+
+         '<td class="t-time">'+fmt(x.t, ds)+'</td><td class="t-remain">'+cd(x.t, nowMs)+'</td></tr>';
+  });
+  return h + '</tbody></table>';
+}
+function toggleHtml(key, label){
+  const open = state.openDetails.has(key);
+  return '<div class="detail-toggle'+(open?" open":"")+'" data-toggle="'+esc(key)+'"><span class="arrow">▸</span> '+label+'</div>';
+}
+function linksHtml(item, s, ds){
+  const by = {}; item.lanes.forEach(L=>by[L.id]=L);
+  const out = [];
+  item.lanes.forEach(L=>{
+    if(L.def.start && L.def.start.lane){
+      out.push('<b>'+esc(L.short)+'</b>：'+esc(L.def.triggerLabel||"")+'（'+fmt(s+L.start*60000, ds)+' 開始）');
+    }
+    L.steps.forEach(st=>{
+      if(st.gate){
+        out.push('<b>'+esc(L.short)+'</b>：'+esc(st.gate.cond)+'（'+fmt(s+st.gate.ready*60000, ds)+'）→「'+esc(st.name)+'」'+fmt(s+st.t*60000, ds));
+      }
+    });
+  });
+  return out.length ? '<div class="g-links">'+out.join("<br>")+'</div>' : "";
+}
+function ganttHtml(item, s, nowMs, ds, key){
+  const T = item.durationMin;
+  const rel = (nowMs - s)/60000;
+  let h = '<div class="gantt">';
+  h += '<div class="g-row axis"><div></div><div class="g-track axis">';
+  for(let m=0; m<=T; m+=30){
+    if((T-m)/T < 0.13 && m!==0) continue;
+    h += '<span style="left:'+pct(m,T)+'%">'+fmtText(s+m*60000, ds).replace(/^\(.*?\) /,"")+'</span>';
+  }
+  h += '<span style="left:100%">'+fmtText(s+T*60000, ds).replace(/^\(.*?\) /,"")+'</span>';
+  h += '</div></div>';
+  item.lanes.forEach(L=>{
+    const lk = key+":"+L.id;
+    const open = state.openDetails.has(lk);
+    const st = rel>=L.end ? "done" : rel>=L.start ? "active" : "todo";
+    const sub = st==="active" ? laneNow(L, rel) : st==="done" ? "終了 "+fmtText(s+L.end*60000, ds) : fmtText(s+L.start*60000, ds)+" 開始予定";
+    h += '<div class="g-row'+(st==="active"?" lane-active":"")+'" data-toggle="'+esc(lk)+'">';
+    h += '<div class="g-label"><span class="g-name">'+(open?"▾ ":"▸ ")+esc(L.short)+'</span><span class="g-sub">'+esc(sub)+'</span></div>';
+    h += '<div class="g-track">';
+    h += '<div class="g-bar '+st+'" style="left:'+pct(L.start,T)+'%;width:'+pct(L.end-L.start,T)+'%"></div>';
+    L.waits.forEach(w=>{ h += '<div class="g-wait" style="left:'+pct(w.from,T)+'%;width:'+pct(w.to-w.from,T)+'%"></div>'; });
+    L.steps.forEach(x=>{ if(x.gate) h += '<div class="g-mark" style="left:'+pct(x.t,T)+'%" title="'+esc(x.gate.label)+'"></div>'; });
+    if(rel>=0 && rel<=T) h += '<div class="g-now" style="left:'+pct(rel,T)+'%"></div>';
+    h += '</div></div>';
+    if(open) h += '<div class="g-detail">'+stepTableHtml(L.steps.map(x=>({name:x.name, t:s+x.t*60000, gate:x.gate})), nowMs, ds)+'</div>';
+  });
+  h += linksHtml(item, s, ds);
+  h += '<div class="g-hint">工程名をタップするとステップ詳細を表示／赤線＝現在、黄線＝待ち合わせ点</div>';
+  return h + '</div>';
+}
+function scheduleHtml(sched, startMs, nowMs, kp){
+  const ds = dateStrOf(new Date(startMs));
+  let h = "";
+  sched.segs.forEach((seg, idx)=>{
+    const s = startMs + seg.off*60000, e = s + seg.dur*60000;
+    const st = nowMs>=e ? "done" : nowMs>=s ? "active" : "todo";
+    const key = kp+":"+idx;
+    h += '<div class="result-item seg-'+st+'">';
+    h += '<div class="ri-top"><span class="ri-idx">'+(idx+1)+'</span><span class="ri-name">'+esc(seg.item.name)+'</span>'+statusTag(st)+
+         '<span class="ri-time">'+fmt(s, ds)+' 〜 '+fmt(e, ds)+'</span><span class="ri-dur">('+formatDur(seg.dur)+')</span></div>';
+    if(seg.item.note) h += '<div class="ri-note">'+esc(seg.item.note)+'</div>';
+    if(seg.item.lanes){
+      h += ganttHtml(seg.item, s, nowMs, ds, key);
+    } else {
+      if(seg.item.isMode) h += '<div class="ri-note sub">ライン平均モード所要時間（固定）。モード内の並行工程は、工程データを取得したら表示します。</div>';
+      const steps = seg.item.steps.map(x=>({name:x.name, t:s+x.min*60000}));
+      if(!seg.item.simple) h += toggleHtml(key, "ステップ詳細（"+steps.length+"）");
+      if(!seg.item.simple && state.openDetails.has(key)) h += stepTableHtml(steps, nowMs, ds);
+    }
+    h += '</div>';
+  });
+  return h;
+}
+function scheduleText(title, sched, startMs, prepMin){
+  const ds = dateStrOf(new Date(startMs));
+  const endMs = startMs + sched.total*60000, fillMs = endMs + prepMin*60000;
+  const lines = ["【"+title+"】", "開始："+fmtText(startMs, ds)];
+  sched.segs.forEach((seg, idx)=>{
+    const s = startMs + seg.off*60000, e = s + seg.dur*60000;
+    lines.push((idx+1)+". "+seg.item.name+"： "+fmtText(s, ds)+" 〜 "+fmtText(e, ds));
+    if(seg.item.lanes) seg.item.lanes.forEach(L=>{
+      lines.push("　・"+L.short+"： "+fmtText(s+L.start*60000, ds)+" 〜 "+fmtText(s+L.end*60000, ds));
+    });
+  });
+  lines.push("洗浄終了："+fmtText(endMs, ds));
+  lines.push("充填開始時刻："+fmtText(fillMs, ds)+"（準備"+prepMin+"分）");
+  return lines.join("\n");
+}
+
+/* ============ 進行状況ボード ============ */
+function runInfo(r, nowMs){
+  const model = getLineModel(r.line);
+  const plan = r.plan || {};
+  const sched = buildSchedule(model, plan.itemIds);
+  const pausedSec = (r.paused_total_sec||0) + (r.status==="paused" && r.paused_at ? Math.max(0, (nowMs-Date.parse(r.paused_at))/1000) : 0);
+  const origStart = Date.parse(r.started_at);
+  const startMs = origStart + pausedSec*1000;
+  const endMs = startMs + sched.total*60000;
+  const prep = parseInt(plan.prepMin,10) || 0;
+  const fillMs = endMs + prep*60000;
+  const rel = (nowMs - startMs)/60000;
+  return {model, plan, sched, pausedSec, origStart, startMs, endMs, prep, fillMs, rel};
+}
+function nowLinesHtml(info){
+  const rel = info.rel;
+  if(rel < 0) return '<div class="nl-head">開始前</div>';
+  if(rel >= info.sched.total) return '<div class="nl-head">洗浄終了 ▸ 生産準備中</div>';
+  const seg = info.sched.segs.find(sg=>rel>=sg.off && rel<sg.off+sg.dur);
+  if(!seg) return "";
+  const r2 = rel - seg.off;
+  if(seg.item.lanes){
+    const act = seg.item.lanes.filter(L=>r2>=L.start && r2<L.end);
+    return '<div class="nl-head">'+esc(seg.item.name)+'（'+act.length+'工程 並行中）</div>'+
+      act.map(L=>'<div class="nl-lane"><b>'+esc(L.short)+'</b>　'+esc(laneNow(L, r2))+'</div>').join("");
+  }
+  const steps = seg.item.steps.map(x=>({name:x.name, t:x.min}));
+  return '<div class="nl-head">'+esc(seg.item.name)+'</div><div class="nl-lane">'+esc(lastStepName(steps, r2))+'</div>';
+}
+function runCardHtml(ln, r, nowMs){
+  const info = runInfo(r, nowMs);
+  const ds = dateStrOf(new Date(info.origStart));
+  const total = info.sched.total;
+  const p = total>0 ? Math.max(0, Math.min(100, info.rel/total*100)) : 0;
+  let chip;
+  if(r.status==="paused") chip = '<span class="chip pause">一時停止中</span>';
+  else if(info.rel < 0) chip = '<span class="chip wait">開始待ち</span>';
+  else if(nowMs >= info.fillMs) chip = '<span class="chip over">充填開始時刻超過</span>';
+  else if(info.rel >= total) chip = '<span class="chip run">生産準備中</span>';
+  else chip = '<span class="chip run">進行中</span>';
+  let h = '<section class="card line-card'+(r.status==="paused"?" paused":"")+'">';
+  h += '<div class="lc-top"><span class="lc-name">'+esc(ln.name)+'</span>'+chip+'<span class="lc-pct">'+Math.floor(p)+'%</span></div>';
+  h += '<div class="pbar"><div style="width:'+p.toFixed(2)+'%"></div></div>';
+  h += '<div class="now-list">'+nowLinesHtml(info)+'</div>';
+  h += '<div class="lc-grid">'+
+       '<div class="kv"><div class="k">開始</div><div class="v">'+fmt(info.origStart, ds)+'</div></div>'+
+       '<div class="kv"><div class="k">洗浄終了予定</div><div class="v">'+fmt(info.endMs, ds)+'</div></div>'+
+       '<div class="kv fill"><div class="k">充填開始予定</div><div class="v">'+fmt(info.fillMs, ds)+'</div></div></div>';
+  h += '<div class="lc-remain">';
+  if(info.rel < 0) h += '開始まで '+cd(info.startMs, nowMs);
+  else if(info.rel < total) h += '洗浄終了まで '+cd(info.endMs, nowMs);
+  else h += '充填開始まで '+cd(info.fillMs, nowMs);
+  if(info.pausedSec >= 60) h += '　<span style="color:var(--warn)">（一時停止 計'+formatDur(info.pausedSec/60)+'分を反映）</span>';
+  h += '</div>';
+  const key = "b:"+r.line;
+  h += toggleHtml(key, "工程スケジュール（"+info.sched.segs.length+"工程）");
+  if(state.openDetails.has(key)) h += '<div style="margin-top:10px;">'+scheduleHtml(info.sched, info.startMs, nowMs, key)+'</div>';
+  h += '<div class="lc-actions">';
+  if(r.status==="paused") h += '<button class="btn sm go" data-act="resume" data-line="'+r.line+'">▶ 再開</button>';
+  else h += '<button class="btn sm warnb" data-act="pause" data-line="'+r.line+'">⏸ 一時停止</button>';
+  h += '<button class="btn sm" data-act="adjust" data-line="'+r.line+'">開始時刻を修正</button>';
+  h += '<button class="btn sm" data-act="copy" data-line="'+r.line+'">コピー</button>';
+  h += '<button class="btn sm danger" data-act="finish" data-line="'+r.line+'" style="margin-left:auto;">■ 終了</button>';
+  h += '</div>';
+  if(r.updated_at){
+    const u = new Date(r.updated_at);
+    h += '<div class="lc-meta">最終操作：'+(r.updated_by? esc(r.updated_by)+"・" : "")+(u.getMonth()+1)+"/"+u.getDate()+" "+timeStrOf(u)+'</div>';
+  }
+  return h + '</section>';
+}
+function idleCardHtml(ln){
+  return '<section class="card line-card idle"><span class="lc-name">'+esc(ln.name)+'</span><span class="chip idle">洗浄なし</span>'+
+    '<span class="idle-sub"></span><button class="btn sm" data-act="plan" data-line="'+ln.id+'">計画して開始</button></section>';
+}
+function renderBoard(){
+  const nowMs = now();
+  const rows = Backend.rows();
+  let running = "", idle = "";
+  LINES.forEach(ln=>{
+    const r = rows.find(x=>x.line===ln.id);
+    if(r) running += runCardHtml(ln, r, nowMs); else idle += idleCardHtml(ln);
+  });
+  const b = document.getElementById("board");
+  b.innerHTML = (running || '<div class="empty-hint" style="padding:6px 6px 16px;">現在、進行中の洗浄はありません</div>') + idle;
+}
+
+/* ============ 計画タブ：チェックリスト ============ */
+function renderChecklist(){
+  const wrap = document.getElementById("checklist");
+  wrap.innerHTML = "";
+  const modeOn = modeSelected();
+  GROUP_ORDER.forEach(group=>{
+    const fs = document.createElement("fieldset");
+    fs.className = "group";
+    const legend = document.createElement("legend");
+    legend.textContent = group;
+    fs.appendChild(legend);
+    if(modeOn && MODE_COVERS.includes(group)){
+      const hint = document.createElement("div");
+      hint.className = "group-hint";
+      hint.textContent = "モード選択中のため選択できません（モードに含まれます）";
+      fs.appendChild(hint);
+    }
+    ITEMS.filter(it=>it.group===group).forEach(it=>{
+      const disabled = modeOn && isCovered(it);
+      const row = document.createElement("label");
+      row.className = "item-row" + (state.selected.includes(it) ? " checked" : "") + (disabled ? " disabled" : "") + (it.isMode ? " mode-row" : "");
+      row.innerHTML =
+        '<input type="checkbox" data-id="'+it.id+'" '+(state.selected.includes(it)?"checked":"")+(disabled?" disabled":"")+'>'+
+        '<span class="item-name">'+esc(it.name)+'</span>'+
+        (it.isMode? '<span class="lock-tag">'+(it.lanes?"連動計算":"平均・固定")+'</span>' : "")+
+        '<span class="item-dur">'+formatDur(it.durationMin)+'</span>'+
+        (it.sub? '<span class="item-sub">'+esc(it.sub)+'</span>' : "")+
+        (it.note? '<span class="item-note">'+esc(it.note)+'</span>' : "");
+      const cb = row.querySelector("input");
+      cb.addEventListener("change", ()=>{
+        if(cb.checked){ if(!state.selected.includes(it)) state.selected.push(it); }
+        else state.selected = state.selected.filter(x=>x!==it);
+        if(it.isMode){
+          const removed = sanitizeSelection();
+          if(removed) showToast("モードに含まれる個別工程（"+removed+"件）を外しました");
+          renderChecklist();
+        } else row.classList.toggle("checked", cb.checked);
+        renderSelected(); calc(); persistState();
+      });
+      fs.appendChild(row);
+    });
+    wrap.appendChild(fs);
+  });
+}
+
+/* ============ 計画タブ：順序リスト + ドラッグ ============ */
+function renderSelected(){
+  const list = document.getElementById("selectedList");
+  const emptyHint = document.getElementById("selectedEmptyHint");
+  document.getElementById("selCountBadge").textContent = state.selected.length + "件";
+  list.innerHTML = "";
+  if(state.selected.length===0){ emptyHint.style.display = "block"; return; }
+  emptyHint.style.display = "none";
+  state.selected.forEach((it, idx)=>{
+    const row = document.createElement("div");
+    row.className = "sel-item";
+    row.dataset.id = it.id;
+    row.innerHTML =
+      '<span class="grip">⠿</span><span class="sel-order">'+(idx+1)+'</span>'+
+      '<span class="sel-name">'+esc(it.name)+'</span><span class="sel-dur">'+formatDur(it.durationMin)+'</span>'+
+      '<button class="remove-btn" title="削除">×</button>';
+    row.querySelector(".remove-btn").addEventListener("click", ()=>{
+      state.selected = state.selected.filter(x=>x!==it);
+      renderChecklist(); renderSelected(); calc(); persistState();
+    });
+    row.querySelector(".grip").addEventListener("pointerdown", (e)=>{ e.preventDefault(); startDrag(row, e); });
+    list.appendChild(row);
+  });
+}
+function startDrag(row, e){
+  const list = document.getElementById("selectedList");
+  const rect = row.getBoundingClientRect();
+  const clone = row.cloneNode(true);
+  clone.classList.add("drag-clone");
+  clone.style.width = rect.width+"px"; clone.style.left = rect.left+"px";
+  clone.style.top = rect.top+"px"; clone.style.height = rect.height+"px";
+  document.body.appendChild(clone);
+  row.classList.add("drag-placeholder");
+  const offsetY = e.clientY - rect.top;
+  function move(ev){
+    clone.style.top = (ev.clientY - offsetY) + "px";
+    const rows = Array.prototype.slice.call(list.querySelectorAll(".sel-item:not(.drag-placeholder)"));
+    let inserted = false;
+    for(const r of rows){
+      const rr = r.getBoundingClientRect();
+      if(ev.clientY < rr.top + rr.height/2){ list.insertBefore(row, r); inserted = true; break; }
+    }
+    if(!inserted) list.appendChild(row);
+  }
+  function up(){
+    document.removeEventListener("pointermove", move);
+    document.removeEventListener("pointerup", up);
+    document.removeEventListener("pointercancel", up);
+    clone.remove(); row.classList.remove("drag-placeholder");
+    const ids = Array.prototype.map.call(list.querySelectorAll(".sel-item"), el=>el.dataset.id);
+    state.selected = idsToItems(ids);
+    renderSelected(); calc(); persistState();
+  }
+  document.addEventListener("pointermove", move);
+  document.addEventListener("pointerup", up);
+  document.addEventListener("pointercancel", up);
+}
+
+/* ============ 計画タブ：計算結果 ============ */
+function planStartMs(){
+  const d = document.getElementById("startDate").value, t = document.getElementById("startTime").value;
+  if(!d || !t) return null;
+  return new Date(d+"T"+t+":00").getTime();
+}
+function prepMinVal(){ return Math.max(0, parseInt(document.getElementById("prepMin").value,10) || 0); }
+function calc(){
+  const content = document.getElementById("resultContent");
+  const badge = document.getElementById("resultBadge");
+  const startMs = planStartMs();
+  if(startMs===null || state.selected.length===0){
+    badge.textContent = "";
+    content.innerHTML = '<div class="empty-hint">開始日時と洗浄内容を選択すると、ここに計算結果が表示されます</div>';
+    return;
+  }
+  const nowMs = now();
+  const sched = buildSchedule(MODEL, state.selected.map(it=>it.id));
+  const prep = prepMinVal();
+  const ds = dateStrOf(new Date(startMs));
+  const endMs = startMs + sched.total*60000, fillMs = endMs + prep*60000;
+  badge.textContent = sched.segs.length+"工程 / 計"+formatDur(sched.total);
+  const running = Backend.rows().find(r=>r.line===curLine);
+  let h = '<div class="summary-bar">'+
+    '<div class="sum-tile"><div class="lbl">開始</div><div class="val">'+fmt(startMs, ds)+'</div></div>'+
+    '<div class="sum-tile"><div class="lbl">洗浄終了</div><div class="val">'+fmt(endMs, ds)+'</div></div>'+
+    '<div class="sum-tile"><div class="lbl">合計所要時間</div><div class="val">'+formatDur(sched.total)+'</div></div>'+
+    '<div class="sum-tile fill"><div class="lbl">充填開始時刻</div><div class="val">'+fmt(fillMs, ds)+'</div></div></div>';
+  if(running) h += '<div class="line-banner">'+esc(lineName())+'は現在進行中です。ここから開始すると、進行中の内容を上書きします。</div>';
+  h += '<button class="btn go wide" id="btnShareStart">▶ この計画で開始（全端末に共有）</button>';
+  h += '<div class="quickrow" style="margin:10px 0 16px;"><button class="btn sm" id="btnCopyAll">全体をコピー</button></div>';
+  h += scheduleHtml(sched, startMs, nowMs, "p");
+  content.innerHTML = h;
+  document.getElementById("btnCopyAll").addEventListener("click", ()=>copyText(scheduleText(lineName()+" 洗浄スケジュール", sched, startMs, prep), "全体をコピーしました"));
+  document.getElementById("btnShareStart").addEventListener("click", openStartModal);
+}
+
+/* ============ モーダル ============ */
+function openModal(title, bodyHtml, buttons){
+  const root = document.getElementById("modalRoot");
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.innerHTML = "<h3>"+title+"</h3>"+bodyHtml+'<div class="mbtns"></div>';
+  overlay.appendChild(modal);
+  root.appendChild(overlay);
+  const btnWrap = modal.querySelector(".mbtns");
+  function close(){ overlay.remove(); }
+  buttons.forEach(b=>{
+    const btn = document.createElement("button");
+    btn.className = "btn"+(b.cls? " "+b.cls : (b.primary? " primary":" ghost"));
+    btn.textContent = b.label;
+    btn.addEventListener("click", async ()=>{
+      if(!b.onClick){ close(); return; }
+      btn.disabled = true;
+      try{
+        const res = await b.onClick(modal, close);
+        if(res !== false) close();
+      } finally { btn.disabled = false; }
+    });
+    btnWrap.appendChild(btn);
+  });
+  overlay.addEventListener("click", (e)=>{ if(e.target===overlay) close(); });
+  return {modal, close};
+}
+function pinFieldsHtml(){
+  const saved = lsGet(LS_PIN_KEY) || "";
+  const by = lsGet(LS_BY_KEY) || "";
+  return '<div class="mrow"><label class="field">PIN</label>'+
+    '<input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="'+esc(saved)+'" placeholder="PINを入力"></div>'+
+    '<div class="mrow"><label class="field">操作者名（任意）</label><input type="text" id="byInput" value="'+esc(by)+'" placeholder="例：瀧田" maxlength="20"></div>'+
+    '<label class="chk"><input type="checkbox" id="pinRemember"'+(saved?" checked":"")+'> この端末でPINを記憶する</label>'+
+    (Backend.mode==="demo" ? '<div class="ri-note sub">デモモードのPINは 0000 です</div>' : "")+
+    '<div class="merr" id="merr"></div>';
+}
+function readPin(modal){
+  const pin = modal.querySelector("#pinInput").value.trim();
+  const by = modal.querySelector("#byInput").value.trim();
+  const remember = modal.querySelector("#pinRemember").checked;
+  return {pin, by, remember};
+}
+function savePinPrefs(p){
+  lsSet(LS_BY_KEY, p.by || null);
+  lsSet(LS_PIN_KEY, p.remember ? p.pin : null);
+}
+function modalErr(modal, msg){ const el = modal.querySelector("#merr"); if(el) el.textContent = msg; }
+function focusPin(modal){ setTimeout(()=>{ const i = modal.querySelector("#pinInput"); if(i && !i.value) i.focus(); }, 60); }
+
+function openStartModal(){
+  if(state.selected.length===0){ showToast("洗浄内容を選択してください"); return; }
+  const line = curLine;
+  const ids = state.selected.map(it=>it.id);
+  const prep = prepMinVal();
+  const running = Backend.rows().find(r=>r.line===line);
+  const inputMs = planStartMs();
+  const ds = dateStrOf(new Date(now()));
+  const body =
+    '<p>'+esc(lineName())+'：'+state.selected.map(it=>esc(it.name)).join(" → ")+'</p>'+
+    '<div class="mrow"><label class="field">開始時刻</label>'+
+    '<label class="radio"><input type="radio" name="stmode" value="now" checked> 今すぐ開始</label>'+
+    (inputMs!==null ? '<label class="radio"><input type="radio" name="stmode" value="input"> 入力した開始日時（'+fmt(inputMs, ds)+'）で開始</label>' : "")+
+    '</div>'+
+    (running ? '<div class="line-banner" style="margin-bottom:12px;">'+esc(lineName())+'は進行中です。開始すると現在の進行内容を上書きします。</div>' : "")+
+    pinFieldsHtml();
+  const {modal} = openModal("全端末に共有して開始", body, [
+    {label:"キャンセル"},
+    {label:"開始", cls:"go", onClick: async (m, close)=>{
+      const p = readPin(m);
+      if(!p.pin){ modalErr(m, "PINを入力してください"); return false; }
+      const sm = (m.querySelector('input[name=stmode]:checked')||{}).value;
+      const startedAt = (sm==="input" && inputMs!==null) ? new Date(inputMs).toISOString() : null;
+      try{
+        await Backend.rpc("start_run", {p_pin:p.pin, p_line:line, p_plan:{v:1, itemIds:ids, prepMin:prep}, p_started_at:startedAt, p_force:!!running, p_by:p.by||null});
+      }catch(e){ modalErr(m, errText(e)); return false; }
+      savePinPrefs(p);
+      showToast(lineName()+"の洗浄を開始しました");
+      state.openDetails.add("b:"+line);
+      switchTab("board");
+    }}
+  ]);
+  focusPin(modal);
+}
+
+function openActionModal(kind, line){
+  const r = Backend.rows().find(x=>x.line===line);
+  if(!r){ showToast(ERR_MSG.not_running); return; }
+  const name = lineNameOf(line);
+  let title, body = "", btnLabel, btnCls = "primary", rpcName, extra = ()=>({});
+  if(kind==="pause"){
+    title = name+"を一時停止"; btnLabel = "一時停止"; btnCls = "warnb"; rpcName = "pause_run";
+    body = '<p>一時停止中は、再開するまで以降の予定時刻が後ろにずれていきます。</p>';
+  } else if(kind==="resume"){
+    title = name+"を再開"; btnLabel = "再開"; btnCls = "go"; rpcName = "resume_run";
+    body = '<p>停止していた時間の分だけ、予定時刻を後ろ倒しにして再開します。</p>';
+  } else if(kind==="finish"){
+    title = name+"の洗浄を終了"; btnLabel = "終了する"; btnCls = "danger"; rpcName = "finish_run";
+    body = '<p>共有表示をクリアし、全端末で「洗浄なし」に戻します。この操作は取り消せません。</p>';
+  } else if(kind==="adjust"){
+    const d = new Date(r.started_at);
+    title = name+"の開始時刻を修正"; btnLabel = "修正"; rpcName = "set_start";
+    body = '<p>実際に洗浄を開始した時刻に合わせて修正します。</p>'+
+      '<div class="row mrow"><div><label class="field">開始日</label><input type="date" id="adjDate" value="'+dateStrOf(d)+'"></div>'+
+      '<div><label class="field">開始時刻</label><input type="time" id="adjTime" value="'+timeStrOf(d)+'"></div></div>';
+    extra = (m)=>{
+      const dv = m.querySelector("#adjDate").value, tv = m.querySelector("#adjTime").value;
+      if(!dv || !tv) throw new Error("開始日時を入力してください");
+      return {p_started_at: new Date(dv+"T"+tv+":00").toISOString()};
+    };
+  } else return;
+  const {modal} = openModal(title, body + pinFieldsHtml(), [
+    {label:"キャンセル"},
+    {label:btnLabel, cls:btnCls, onClick: async (m)=>{
+      const p = readPin(m);
+      if(!p.pin){ modalErr(m, "PINを入力してください"); return false; }
+      let args;
+      try{ args = Object.assign({p_pin:p.pin, p_line:line, p_by:p.by||null}, extra(m)); }
+      catch(e){ modalErr(m, e.message); return false; }
+      try{ await Backend.rpc(rpcName, args); }
+      catch(e){ modalErr(m, errText(e)); return false; }
+      savePinPrefs(p);
+      showToast(name+"："+({pause:"一時停止しました", resume:"再開しました", finish:"洗浄を終了しました", adjust:"開始時刻を修正しました"})[kind]);
+    }}
+  ]);
+  focusPin(modal);
+}
+
+/* ============ PRESETS ============ */
+function loadPresets(){ try{ return JSON.parse(lsGet(LS_PRESET_KEY)) || []; }catch(e){ return []; } }
+function savePresets(list){ lsSet(LS_PRESET_KEY, JSON.stringify(list)); }
+function renderPresetSelect(){
+  const sel = document.getElementById("presetSelect");
+  const presets = loadPresets();
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">プリセットを選択…</option>';
+  presets.forEach(p=>{
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.name+"（"+p.itemIds.length+"工程）";
+    sel.appendChild(opt);
+  });
+  if(presets.some(p=>p.id===cur)) sel.value = cur;
+}
+document.getElementById("btnSavePreset").addEventListener("click", ()=>{
+  if(state.selected.length===0){ showToast("洗浄内容を選択してください"); return; }
+  const {modal} = openModal("プリセットを保存",
+    '<div class="mrow"><label class="field">プリセット名</label><input type="text" id="presetNameInput" placeholder="例：定期メンテナンス洗浄"></div>',
+    [{label:"キャンセル"},
+     {label:"保存", primary:true, onClick:(m)=>{
+        const name = m.querySelector("#presetNameInput").value.trim();
+        if(!name){ showToast("名前を入力してください"); return false; }
+        const presets = loadPresets();
+        presets.push({id:"p_"+Date.now(), name, lineId:curLine, itemIds: state.selected.map(it=>it.id)});
+        savePresets(presets); renderPresetSelect(); showToast("プリセットを保存しました");
+     }}]);
+  setTimeout(()=>{ const inp = modal.querySelector("#presetNameInput"); if(inp) inp.focus(); }, 50);
+});
+document.getElementById("btnLoadPreset").addEventListener("click", ()=>{
+  const sel = document.getElementById("presetSelect");
+  if(!sel.value){ showToast("プリセットを選択してください"); return; }
+  const p = loadPresets().find(x=>x.id===sel.value);
+  if(!p) return;
+  if(p.lineId && MODE_MIN[p.lineId] && p.lineId!==curLine){
+    document.getElementById("lineSelect").value = p.lineId;
+    buildLine(p.lineId); renderLineBanner();
+  }
+  state.selected = idsToItems(p.itemIds);
+  sanitizeSelection();
+  renderChecklist(); renderSelected(); calc(); persistState();
+  showToast('プリセット「'+p.name+'」を読み込みました');
+});
+document.getElementById("btnDeletePreset").addEventListener("click", ()=>{
+  const sel = document.getElementById("presetSelect");
+  if(!sel.value){ showToast("プリセットを選択してください"); return; }
+  const presets = loadPresets();
+  const p = presets.find(x=>x.id===sel.value);
+  if(!p) return;
+  openModal("プリセットを削除", '<p>「'+esc(p.name)+'」を削除しますか？この操作は元に戻せません。</p>',
+    [{label:"キャンセル"},
+     {label:"削除", cls:"danger", onClick:()=>{ savePresets(presets.filter(x=>x.id!==p.id)); renderPresetSelect(); showToast("プリセットを削除しました"); }}]);
+});
+
+/* ============ 端末内の入力状態の保存 ============ */
+function persistState(){
+  lsSet(LS_STATE_KEY, JSON.stringify({
+    itemIds: state.selected.map(it=>it.id),
+    line: curLine,
+    startDate: document.getElementById("startDate").value,
+    startTime: document.getElementById("startTime").value,
+    prepMin: document.getElementById("prepMin").value
+  }));
+}
+function restoreState(){
+  let saved = null;
+  try{ saved = JSON.parse(lsGet(LS_STATE_KEY)); }catch(e){}
+  const n = new Date();
+  document.getElementById("startDate").value = (saved && saved.startDate) || dateStrOf(n);
+  document.getElementById("startTime").value = (saved && saved.startTime) || timeStrOf(n);
+  if(saved && saved.prepMin!==undefined && saved.prepMin!=="") document.getElementById("prepMin").value = saved.prepMin;
+  const line = (saved && MODE_MIN[saved.line]) ? saved.line : "m9";
+  document.getElementById("lineSelect").value = line;
+  buildLine(line);
+  if(saved && Array.isArray(saved.itemIds)){ state.selected = idsToItems(saved.itemIds); sanitizeSelection(); }
+}
+
+/* ============ TABS / EVENTS ============ */
+function switchTab(tab){
+  state.tab = tab;
+  lsSet(LS_TAB_KEY, tab);
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+  document.getElementById("view-board").style.display = tab==="board" ? "" : "none";
+  document.getElementById("view-plan").style.display = tab==="plan" ? "" : "none";
+  if(tab==="board") renderBoard(); else calc();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click", ()=>switchTab(t.dataset.tab)));
+
+function onToggleClick(e, rerender){
+  const tg = e.target.closest("[data-toggle]");
+  if(!tg) return false;
+  const k = tg.dataset.toggle;
+  if(state.openDetails.has(k)) state.openDetails.delete(k); else state.openDetails.add(k);
+  rerender();
+  return true;
+}
+document.getElementById("board").addEventListener("click", (e)=>{
+  if(onToggleClick(e, renderBoard)) return;
+  const a = e.target.closest("[data-act]");
+  if(!a) return;
+  const line = a.dataset.line, act = a.dataset.act;
+  if(act==="plan"){
+    document.getElementById("lineSelect").value = line;
+    const ids = state.selected.map(it=>it.id);
+    buildLine(line); state.selected = idsToItems(ids); sanitizeSelection();
+    renderLineBanner(); renderChecklist(); renderSelected(); persistState();
+    switchTab("plan");
+    return;
+  }
+  if(act==="copy"){
+    const r = Backend.rows().find(x=>x.line===line);
+    if(!r) return;
+    const info = runInfo(r, now());
+    copyText(scheduleText(lineNameOf(line)+" 洗浄スケジュール（進行中）", info.sched, info.startMs, info.prep), "スケジュールをコピーしました");
+    return;
+  }
+  openActionModal(act, line);
+});
+document.getElementById("resultContent").addEventListener("click", (e)=>{ onToggleClick(e, calc); });
+
+document.getElementById("btnNow").addEventListener("click", ()=>{
+  const n = new Date(now());
+  document.getElementById("startDate").value = dateStrOf(n);
+  document.getElementById("startTime").value = timeStrOf(n);
+  calc(); persistState();
+});
+["startDate","startTime","prepMin"].forEach(id=>{
+  document.getElementById(id).addEventListener("change", ()=>{ calc(); persistState(); });
+});
+document.getElementById("lineSelect").addEventListener("change", (e)=>{
+  const ids = state.selected.map(it=>it.id);
+  buildLine(e.target.value);
+  state.selected = idsToItems(ids);
+  sanitizeSelection();
+  renderLineBanner(); renderChecklist(); renderSelected(); calc(); persistState();
+});
+
+/* ============ 接続診断 ============ */
+async function runDiagnose(){
+  const out = [];
+  const add = (ok, label, detail)=>out.push('<div style="margin-bottom:8px;"><b style="color:'+(ok===true?"var(--ok)":ok===false?"var(--danger)":"var(--warn)")+'">'+(ok===true?"✔":ok===false?"✖":"！")+'</b> '+esc(label)+(detail?'<div style="font-size:11.5px;color:var(--sub);word-break:break-all;margin-left:18px;">'+esc(detail)+'</div>':"")+'</div>');
+  const url = (CONFIG.SUPABASE_URL||"").trim(), key = (CONFIG.SUPABASE_ANON_KEY||"").trim();
+  add(!!url, "SUPABASE_URL の設定", url || "空のままです");
+  const urlOk = /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(url);
+  if(url) add(urlOk, "URLの形式", urlOk ? "OK" : "「https://〇〇.supabase.co」の形にしてください（末尾の / や /rest/v1 は不要）");
+  add(!!key, "SUPABASE_ANON_KEY の設定", key ? key.slice(0,16)+"…（"+key.length+"文字）" : "空のままです");
+  if(key) add(/^sb_publishable_/.test(key) || /^eyJ/.test(key) ? true : false, "キーの種類",
+    /^sb_secret_/.test(key) ? "secret key が貼られています。Publishable key に替えてください" :
+    /^sb_publishable_/.test(key) ? "Publishable key" : /^eyJ/.test(key) ? "旧形式 anon キー" : "sb_publishable_ で始まるキーを貼ってください");
+  add(!!(window.supabase && window.supabase.createClient), "通信ライブラリの読み込み", (window.supabase && window.supabase.createClient) ? "OK" : "cdn.jsdelivr.net から読み込めません（ネットワーク制限の可能性）");
+  add(navigator.onLine, "ネット接続", navigator.onLine ? "オンライン" : "オフライン");
+  if(url && key){
+    const base = url.replace(/\/+$/,"");
+    const h = {apikey:key};
+    try{
+      const r = await fetch(base+"/rest/v1/cip_runs?select=line", {headers:h});
+      const body = await r.text();
+      add(r.ok, "表 cip_runs の読み取り", "HTTP "+r.status+"："+body.slice(0,200));
+    }catch(e){ add(false, "表 cip_runs の読み取り", "通信できません："+e.message+"（URL違い・ネットワーク制限の可能性）"); }
+    try{
+      const r = await fetch(base+"/rest/v1/rpc/server_now", {method:"POST", headers:Object.assign({"Content-Type":"application/json"}, h), body:"{}"});
+      const body = await r.text();
+      add(r.ok, "関数 server_now の呼び出し", "HTTP "+r.status+"："+body.slice(0,200));
+    }catch(e){ add(false, "関数 server_now の呼び出し", "通信できません："+e.message); }
+  }
+  add(null, "現在の表示", Backend.conn().text+"／モード："+Backend.mode);
+  return out.join("");
+}
+document.getElementById("conn").addEventListener("click", async ()=>{
+  const {modal} = openModal("接続診断", '<div id="diagBody" style="font-size:13px;line-height:1.5;">診断中…</div>', [
+    {label:"結果をコピー", onClick:(m)=>{ copyText(m.querySelector("#diagBody").innerText, "診断結果をコピーしました"); return false; }},
+    {label:"閉じる", primary:true}
+  ]);
+  modal.querySelector("#diagBody").innerHTML = await runDiagnose();
+});
+
+function renderConn(){
+  const c = Backend.conn();
+  const el = document.getElementById("conn");
+  el.className = "conn "+c.state;
+  document.getElementById("connText").textContent = c.text;
+}
+Backend.onChange(()=>{
+  renderConn();
+  if(state.tab==="board") renderBoard(); else calc();
+});
+
+/* 1秒ごとに残り時間を更新、10秒ごとに画面全体を更新 */
+setInterval(()=>{
+  const n = now();
+  document.querySelectorAll(".cd[data-t]").forEach(el=>{ el.textContent = remainText(parseInt(el.dataset.t,10), n); });
+}, 1000);
+setInterval(()=>{
+  if(document.querySelector(".modal-overlay")) return;
+  if(state.tab==="board") renderBoard(); else calc();
+}, 10000);
+
+/* ============ INIT ============ */
+restoreState();
+renderPresetSelect();
+renderLineBanner();
+renderChecklist();
+renderSelected();
+if(Backend.mode==="demo"){
+  const db = document.getElementById("demoBanner");
+  db.style.display = "block";
+  db.innerHTML = "デモモード：Supabase未設定のため、共有はこの端末のブラウザ内だけで動作します（PIN：0000）。設定後は全端末で共有されます。";
+}
+switchTab(lsGet(LS_TAB_KEY)==="plan" ? "plan" : "board");
+Backend.init().then(()=>{ renderConn(); if(state.tab==="board") renderBoard(); else calc(); });
+
+})();
+</script>
+</body>
+</html>
